@@ -1,0 +1,42 @@
+// implementing BFS with collection
+relaxgraph(Point p,Graph graph, Collection coll1[Point(graph)],Collection coll2[Point(graph)],int val){
+	foreach( t In p.outnbrs){
+		if(t.dist > val){
+			MIN(t.dist,val,changed[0]);
+			coll2.add(t);
+		}
+	}
+}
+init(Point <GPU> t, Graph <GPU> graph){
+	t.dist = INT_MAX;
+}
+
+BFS(char *edge,char *part){
+	Graph hgraph;
+	hgraph.addPointProperty(dist,int);
+	hgraph.addProperty(changed,bool);
+	int temp=0;
+	hgraph.read(edge,part);
+	Collection coll1[Point(hgraph)],coll2[Point(hgraph)];
+	coll1.size = temp;
+	coll2.size = temp;
+	foreach(t In hgraph.points)init(t,hgraph);
+	hgraph.points[0].dist=0;
+	coll1.add(hgraph.points[0]);
+	int val = 1;
+	foreach(t In coll1)relaxgraph(t,hgraph,coll1,coll2,val);
+	while(1){
+		hgraph.changed[0]=false;
+		coll1=coll2;
+		temp=0;
+		coll2.size=temp;
+		val++;
+		foreach(t In coll1)relaxgraph(t,hgraph,coll1,coll2,val);
+
+		if(hgraph.changed[0]==false)
+			break;
+	}
+}
+int main(int argc, char *argv[]){
+	BFS(argv[1],argv[2]);
+}

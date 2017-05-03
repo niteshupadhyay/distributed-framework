@@ -1,0 +1,64 @@
+init_left(Point t,Graph gr){
+	foreach(p In t.outnbrs){
+		t.left = 1;
+		break;
+	}
+}
+init(Point  p,Graph gr){
+	p.left = 0;
+	p.match = -1;
+	p.suit = -1;
+}
+first_shake(Point t,Graph  gr){
+	if(t.left && t.match==-1){
+		foreach(p In t.outnbrs){
+			if(p.match == -1){
+				p.suit = t;
+			if(!changed[0])
+				changed[0] = 1;
+			}
+		}
+	}
+}
+second_shake(Point  t,Graph gr){
+	if(!t.left && t.match==-1 && t.suit!=-1){
+		Point n = t.suit;
+		n.suit = t;
+		t.suit = -1;
+	}
+}
+third_shake(Point  t,Graph  gr){
+	if(t.left && t.match==-1 && t.suit!=-1){
+		Point n = t.suit;
+		n.match = t;
+		t.match = n;
+		ADD(count[0],1);
+	}
+}
+int main(int argc,char *argv[]){
+	Graph hgraph;
+	hgraph.addPointProperty(left,int); //left-1 right-0
+	hgraph.addPointProperty(match,int);
+	hgraph.addPointProperty(suit,int);
+	hgraph.addProperty(changed,bool);
+	hgraph.addProperty(count,int);		
+	hgraph.read(argv[1],argv[2]);
+	foreach(p In hgraph.points)
+		init(p,hgraph);
+	foreach(p In hgraph.points)
+		init_left(p,hgraph);
+	while(true){
+			hgraph.changed[0]=false;
+
+		foreach(p In hgraph.points)
+			first_shake(p,hgraph);
+		foreach(p In hgraph.points)
+			second_shake(p,hgraph);
+		foreach(p In hgraph.points)
+			third_shake(p,hgraph);
+		if(hgraph.changed[0] == 0)
+			break;
+	}
+	
+	return 0;
+}

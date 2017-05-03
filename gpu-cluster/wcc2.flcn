@@ -1,0 +1,50 @@
+//sssp optimized cluster
+relaxgraph( Point p,Graph graph){
+	p.updated=false;
+	int len = INT_MAX;
+	foreach(t In p.outnbrs){
+		if(len > t.dist)
+			len = t.dist;
+		MIN(t.dist,p.dist,changed[0]);
+	}
+	MIN(p.dist,len,changed[0]); 
+
+}
+
+init( Point t,Graph  graph){
+	t.dist=id;
+	t.olddist=id;
+	t.updated=false;
+}
+reset( Point t,Graph graph){
+	if(t.dist<t.olddist)
+		t.updated=true;
+	t.olddist=t.dist;
+}
+void WCC(char *edge,char *part) {
+	Graph  hgraph;
+	hgraph.addPointProperty(dist,int);
+	hgraph.addPointProperty(updated,bool);
+	hgraph.addPointProperty(olddist,int);
+	hgraph.addProperty(changed,bool);
+	hgraph.read(edge,part);
+	foreach(t In hgraph.points)
+		init(t,hgraph);
+	hgraph.points[0].updated = true;
+	hgraph.points[0].dist=0;
+	while(1){
+		hgraph.changed[0]=false;
+		foreach(t In hgraph.points)(t.updated)
+			relaxgraph(t,hgraph);
+		if(hgraph.changed[0]==false)
+			break;
+		foreach(t In hgraph.points)
+			reset(t,hgraph);
+
+	}
+	return;
+}
+int  main(int argc,char *argv[]){
+	WCC(argv[1],argv[2]);
+	return 0;
+}

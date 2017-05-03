@@ -1,0 +1,32 @@
+void relaxgraph( Point p,Graph graph1){
+        foreach(t In p.outnbrs){
+                ADD(t.sum,p.pr/p.outnbrs_no());
+        }   
+}
+init( Point t,Graph  graph){
+        t.pr=1/graph.npoints;
+}
+reset( Point t,Graph  graph){
+        t.pr=0.85*t.sum+0.15/hgraph.npoints;
+}
+void PageRank(char *name,char *part){
+        Graph  hgraph;
+        hgraph.addPointProperty(sum,double);
+        hgraph.addPointProperty(pr,double);
+        hgraph.read(name,part);
+        foreach(t In hgraph.points)
+                init(t,hgraph);
+        int itr=0;
+        while(itr<10){
+                foreach(t In hgraph.points)
+	                relaxgraph(t,hgraph);
+                foreach(t In hgraph.points)
+			reset(t,hgraph);
+                itr++;
+	}
+        return;
+}
+int main(int argc,char *argv[]){
+        PageRank(argv[1],argv[2]);
+        return ;
+}

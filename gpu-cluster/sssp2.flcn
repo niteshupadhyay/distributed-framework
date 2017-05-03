@@ -1,0 +1,45 @@
+//sssp optimized cluster
+relaxgraph( Point p,Graph graph){
+	p.updated=false;
+	foreach(t In p.outnbrs)
+		MIN(t.dist,p.dist+graph.getweight(p,t),changed[0]);
+
+}
+
+init( Point t,Graph  graph){
+	t.dist=INT_MAX;
+	t.olddist=INT_MAX;
+	t.updated=false;
+}
+reset( Point t,Graph graph){
+	if(t.dist<t.olddist)
+		t.updated=true;
+	t.olddist=t.dist;
+}
+void SSSP(char *edge,char *part) {
+	Graph  hgraph;
+	hgraph.addPointProperty(dist,int);
+	hgraph.addPointProperty(updated,bool);
+	hgraph.addPointProperty(olddist,int);
+	hgraph.addProperty(changed,bool);
+	hgraph.read(edge,part);
+	foreach(t In hgraph.points)
+		init(t,hgraph);
+	hgraph.points[0].updated = true;
+	hgraph.points[0].dist=0;
+	while(1){
+		hgraph.changed[0]=false;
+		foreach(t In hgraph.points)(t.updated)
+			relaxgraph(t,hgraph);
+		if(hgraph.changed[0]==false)
+			break;
+		foreach(t In hgraph.points)
+			reset(t,hgraph);
+
+	}
+	return;
+}
+int  main(int argc,char *argv[]){
+	SSSP(argv[1],argv[2]);
+	return 0;
+}
