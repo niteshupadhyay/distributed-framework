@@ -1,0 +1,21 @@
+void BFS(Point p,Graph gr){
+	foreach(t In p.outnbrs)
+		MIN(t.dist,p.dist+1,gr.change);
+}
+int main(int argc,char *argv[]){
+	Graph gr;
+	gr.addPointProperty(dist,long);
+	gr.addProperty(change,bool);
+	gr.read(argv[1]);
+	foreach(p In gr.points)
+		p.dist = INT_MAX;
+	gr.points[0].sum=0;
+	while(true){
+			gr.change=false;
+			foreach(p In gr.points)
+				BFS(p,gr);
+			if(changed==true)
+			break;
+	}
+	return 0;
+}

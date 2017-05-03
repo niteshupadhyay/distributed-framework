@@ -1,0 +1,25 @@
+void pagerank(Point p,Graph gr){
+	double temp=0,val;
+	foreach(t In p.outnbrs)
+		ADD(temp,p.pagerank/p.outDegree());
+	val=0.85*temp+(0.15/gr.npoints);
+	p.prev_pagerank=val;
+}
+int main(int argc,char *argv[]){
+	int itr=0;
+	Graph gr;
+	gr.addPointProperty(prev_pagerank,double);
+	gr.addPointProperty(pagerank,double);
+	gr.read(argv[1]);
+	foreach(p In gr.points)
+	p.pageank=1/gr.npoints;
+	while(itr<20){
+		float val;
+		foreach(p In gr.points)
+			pagerank(p,gr);
+		foreach(p In gr.points)
+		p.pagerank=p.prev_pagerank;
+		itr++;	
+	}
+return 0;
+}

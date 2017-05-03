@@ -1,0 +1,60 @@
+package org.apache.giraph.examples;
+import org.apache.giraph.GiraphRunner;
+import org.apache.giraph.graph.BasicComputation;
+import org.apache.giraph.conf.LongConfOption;
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.graph.Vertex;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import org.apache.hadoop.io.Writable;
+
+public class Pagerank{
+public static class PagerankComputation extends BasicComputation <LongWritable, VertexValue, DoubleWritable, DoubleWritable > {
+private void pagerank ( Vertex<LongWritable, VertexValue, DoubleWritable> vertex,Iterable<DoubleWritable> messages){
+double  temp =0 ,val ;
+for(msg:messages){
+temp+=msg.get();
+}
+val=0.850000*temp+(0.150000/gr.npoints); 
+vertex.getValue().prev_pagerank=val; 
+
+}
+public void compute(Vertex<LongWritable, VertexValue, DoubleWritable> vertex,Iterable<DoubleWritable> messages) throws IOException {
+
+if (getSuperstep()== 0) {
+vertex.getValue().pagerank=1/getTotalNumVertices();
+}
+
+if(getSuperstep()<21){
+pagerank(vertex,messages);
+if(getSuperstep()>0)
+vertex.getValue().pagerank=vertex.getValue().prev_pagerank;
+sendMessageToAllEdges(vertex,vertex.getValue().pagerank/vertex.getNumEdges());
+}
+else{
+vertex.voteToHalt();
+return ;
+}
+}
+}
+public static class VertexValue implements Writable {
+public double pagerank ; 
+public double prev_pagerank;
+public void write(DataOutput out) throws IOException {
+out.writeBoolean(matched);
+out.writeLong(matchedVertex);
+}
+public String toString() {
+StringBuilder sb = new StringBuilder();
+sb.append(match);   
+return sb.toString();
+}
+}
+}

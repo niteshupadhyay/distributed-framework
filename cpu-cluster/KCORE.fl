@@ -1,0 +1,33 @@
+int K;
+void removeVertex(Point p,Graph gr){
+if(p.edge_count<K){
+foreach(t In p.outnbrs)
+insert(t.coll,p);
+removePoint(p);
+gr.change=true;
+}
+}
+void removeEdge(Point p,Graph gr){
+foreach(x In p.coll){
+foreach(t In p.outnbrs){
+if(x==t)
+p.removeEdge(t);
+}
+}
+}
+int main(){
+Graph gr;
+gr.addPointProperty(coll,set(long));
+gr.addProperty(match,long);
+gr.addProperty(change,bool)
+scanf("%d",&K);
+while(true){
+gr.change=false;
+foreach(p In gr.points)
+removeVertex(p,gr);
+if(gr.change==true)
+break;
+foreach(p In gr.points)
+removeEdge(p,gr);
+}
+}

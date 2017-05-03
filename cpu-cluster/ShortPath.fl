@@ -1,0 +1,21 @@
+SSSP(Point p,Graph gr){
+	foreach(t In p.outnbrs)
+		MIN(t.dist,p.dist+p.getWeight(t),gr.change);
+}
+int main(int argc,char *argv[]){
+	Graph gr;
+	gr.addPointProperty(dist,long);
+	gr.addProperty(change,bool);
+	gr.read(argv[1]);
+	foreach(t In gr.points)
+		t.dist = Long_MAX;
+	gr.points[0].sum=0;
+	while(true){
+		gr.change=false;
+		foreach(p In gr.points)
+			SSSP(p,gr);
+		if(gr.change==true)
+		break;
+	}
+	return 0;
+}

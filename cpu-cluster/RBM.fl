@@ -1,0 +1,45 @@
+void first_shake(Point p,Graph gr){
+	if(p.left){
+		foreach(t In p.outnbrs){
+			if(t.match ==-1){
+				t.suit = p;
+				gr.change = true;
+			}
+		}
+	}
+}
+void second_shake(Point p,Graph gr){
+	if(!p.left){
+		Point n ;
+		n=p.suit;
+		n.suit = p;
+	}
+}
+void third_shake(Point p,Graph gr){
+	if(p.left){
+		Point n ;
+		n= p.suit;
+		n.match = p;
+		p.match = n;
+		ADD(count,1);
+	}
+}
+int main(){
+	Graph gr;
+	gr.addPointProperty(match,long);
+	gr.addPointProperty(left,long);
+	gr.addProperty(count,long);
+	gr.addProperty(change,bool);
+	while(true){
+		gr.change=false;	
+		foreach(p In gr.points)(p.match==-1)
+		first_shake(p,gr);			
+		foreach(p In gr.points)(p.match==-1)
+		second_shake(p,gr);
+		foreach(p In gr.points)(p.match==-1)
+		third_shake(p,gr);
+		if(gr.change ==true)
+		break;
+	}
+	return 0;
+}

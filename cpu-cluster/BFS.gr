@@ -1,0 +1,81 @@
+package org.apache.giraph.examples.sssp;
+import org.apache.giraph.GiraphRunner;
+import org.apache.giraph.graph.BasicComputation;
+import org.apache.giraph.conf.LongConfOption;
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.graph.Vertex;
+import org.apache.giraph.master.DefaultMasterCompute;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.BooleanWritable; 
+import org.apache.giraph.aggregators.BooleanOverwriteAggregator;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+import java.io.IOException;
+public class BFS{
+
+public static class BFSCompute extends BasicComputation<LongWritable,VertexValue,LongWritable,LongWritable>{
+
+private void bfs(Vertex<LongWritable,VertexValue,LongWritable> vertex,Iterable<LongWritable> messages){
+
+if(getSuperstep()==0){
+if(vertex.getValue().dist!=Long.MAX_VALUE)
+for (Edge<LongWritable, LongWritable> edge : vertex.getEdges()) {
+long tempdist =vertex.getValue().dist + 1;
+sendMessage(edge.getTargetVertexId(), new LongWritable(tempdist));
+aggregate(BFSMasterCompute.CHANGE,new BooleanWritable(true));
+}
+}
+else{	
+long mintemp=Long.MAX_VALUE;
+for(LongWritable msg:messages){
+mintemp=Math.min(mintemp,msg.get());
+}
+if(mintemp<vertex.getValue().dist){
+vertex.getValue().dist=mintemp;	
+for (Edge<LongWritable, LongWritable> edge : vertex.getEdges()) {
+long tempdist =vertex.getValue().dist + 1;
+sendMessage(edge.getTargetVertexId(), new LongWritable(tempdist));
+aggregate(BFSMasterCompute.CHANGE,new BooleanWritable(true));
+}
+}
+}
+}
+public void compute(Vertex<LongWritable,VertexValue,LongWritable> vertex,Iterable<LongWritable> messages) throws IOException {
+								
+BooleanWritable bw =getAggregatedValue(BFSMasterCompute.CHANGE);
+if(getSuperstep()==0){
+	vertex.getValue().dist=Long.MAX_VALUE;
+	if(vertex.getId().get()==0)
+	vertex.getValue().dist=0;
+}
+
+if(getSuperstep()!=0&&bw.get()==false){
+vertex.voteToHalt();
+return ;	
+}
+
+bfs(vertex,messages);
+}
+}
+public static class BFSMasterCompute extends DefaultMasterCompute {
+public static final String CHANGE= "change";
+public void initialize() throws InstantiationException,
+IllegalAccessException {
+registerAggregator(CHANGE,BooleanOverwriteAggregator.class);
+}
+}
+public static class VertexValue implements Writable {
+public long dist ; 
+public void write(DataOutput out) throws IOException {
+out.writeBoolean(dist);
+}
+public String toString() {
+StringBuilder sb = new StringBuilder();
+sb.append(dist);   
+return sb.toString();
+}
+}
+}

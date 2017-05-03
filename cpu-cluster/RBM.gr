@@ -1,0 +1,148 @@
+package org.apache.giraph.examples;
+import org.apache.giraph.GiraphRunner;
+import org.apache.giraph.graph.BasicComputation;
+import org.apache.giraph.conf.LongConfOption;
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.graph.Vertex;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+import java.io.IOException;
+
+public class RBM {
+public static class RBMComputation extends BasicComputation <LongWritable, VertexValue, NullWritable, LongWritable > {
+private Phases currPhase;
+public void compute(Vertex<LongWritable, VertexValue, NullWritable> vertex,Iterable<LongWritable> messages) throws IOException {
+
+IntWritable phaseInt = getAggregatedValue(PHASE);
+int currPhase=phaseInt.get();
+BooleanWritable bw =getAggregatedValue(RBMMasterCompute.CHANGE);
+if(getSuperstep()!=0&&bw.get()==false&&currPhase==0){
+vertex.voteToHalt();
+return ;
+}
+
+switch (currPhase){
+case FIRST_SHAKE:
+if(vertex.getValue().match==-1 ){
+vertex.voteToHalt();
+return;
+}
+else 
+first_shake(vertex,message);
+break;
+CASE FIRST_SHAKE_AUX:
+first_shake_aux(vertex,message);
+break;
+case SECOND_SHAKE:
+if(vertex.getValue().match==-1 ){
+vertex.voteToHalt();
+return;
+}
+else 
+second_shake(vertex,message);
+break;
+CASE SECOND_SHAKE_AUX:
+second_shake_aux(vertex,message);
+break;
+case THIRD_SHAKE:
+if(vertex.getValue().match==-1 ){
+vertex.voteToHalt();
+return;
+}
+else 
+third_shake(vertex,message);
+break;
+CASE THIRD_SHAKE_AUX:
+third_shake_aux(vertex,message);
+break;
+}
+}
+private void first_shake (Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+if(vertex.getValue().left){
+sendMessageToAllEdge(vertex,vertex.getId().get()); 
+aggregate(CHANGE, new BooleanWritable(true));
+}
+}
+//to receive message sent in previous function  first_shake 
+private void first_shake_aux(Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+if(vertex.getValue().match=-1){
+foreach(LongWritable msg:message){
+vertex.getValue().suit=msg.get();
+break;
+}
+}//end of if 
+}
+private void second_shake (Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+if(!vertex.getValue().left){
+LongWritable lw= new LongWritable(vertex.getValue().suit);
+sendMessage(lw,vertex.getId().get());
+}
+}
+//to receive message sent in previous function  second_shake 
+private void second_shake_aux(Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+foreach(LongWritable msg:message){
+vertex.getValue().suit=msg.get();
+break;
+}
+}
+private void third_shake (Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+if(vertex.getValue().left){
+LongWritable lw= new LongWritable(vertex.getValue().suit);
+sendMessage(lw,vertex.getId().get());
+}
+}
+//to receive message sent in previous function  third_shake 
+private void third_shake_aux(Vertex<LongWritable, VertexValue, NullWritable> vertex, Iterable<LongWritable> messages){
+foreach(LongWritable msg:message){
+vertex.getValue().match=msg;
+aggregate(RBMMasterCompute.CHANGE,new BooleanWritable(true));
+aggregate(RBMMasterCompute.count,new LongWritable(1));
+break;
+}
+}
+}
+public static class RBMMasterCompute extends DefaultMasterCompute{
+public static final String COUNT= "count" ;
+public static final String CHANGE= "change" ;
+public static final String PHASE = "phase";
+public enum Phases {
+FIRST_SHAKE,FIRST_SHAKE_AUX , SECOND_SHAKE,SECOND_SHAKE_AUX , THIRD_SHAKE,THIRD_SHAKE_AUX 
+};
+ 
+public void initialize() throws InstantiationException,	IllegalAccessException { 
+registerPersistentAggregator(PHASE, IntOverwriteAggregator.class);
+registerPersistentAggregator(COUNT,SUMAggregator.class);
+registerAggregator(CHANGE,BooleanOverwriteAggregator.class);
+}
+public void compute() {
+if (getSuperstep() == 0) {
+setPhase(Phases.FIRST_SHAKE);
+} else {
+Phases currPhase = getPhase();
+switch (currPhase) {
+case FIRST_SHAKE:
+setPhase(Phase.FIRST_SHAKE_AUX);
+break;
+CASE FIRST_shake_AUX:
+setPhase(Phase.SECOND_SHAKE_AUX);
+break;
+case SECOND_SHAKE:
+setPhase(Phase.SECOND_SHAKE_AUX);
+break;
+CASE SECOND_shake_AUX:
+setPhase(Phase.THIRD_SHAKE_AUX);
+break;
+case THIRD_SHAKE:
+setPhase(Phase.THIRD_SHAKE_AUX);
+break;
+CASE THIRD_shake_AUX:
+setPhase(Phase.FIRST_SHAKE);
+break;
+}
+}
+}
+}
+}

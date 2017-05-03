@@ -1,0 +1,84 @@
+package org.apache.giraph.examples;
+import org.apache.giraph.GiraphRunner;
+import org.apache.giraph.graph.BasicComputation;
+import org.apache.giraph.conf.LongConfOption;
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.graph.Vertex;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
+import java.io.IOException;
+
+public class KCORE {
+public static class KCoreComputation extends BasicComputation<LongWritable,NullWritable, NullWritable, LongWritable>{
+public void compute(Vertex<LongWritable,NullWritable, NullWritable, LongWritable> vertex,Iterable<LongWritable> messages) throws IOException {
+
+IntWritable phaseInt = getAggregatedValue(PHASE);
+int currPhase=phaseInt.get();
+BooleanWritable bw =getAggregatedValue(KCoreMaster.CHANGE);
+if(getSuperstep()!=0&&bw.get()==false&&currPhase==1){
+vertex.voteToHalt();
+return ;
+}
+switch (currPhase){
+case REMOVEVERTEX:
+removeVertex(vertex,message);
+break;
+case REMOVEEDGE:
+removeEdge(vertex,message);
+break;
+}
+}
+private void removeVertex (Vertex<LongWritable,NullWritable, NullWritable, LongWritable> vertex,Iterable<LongWritable> messages){
+if(vertex.getNumEdges()<K)
+{
+sendMessageToAllEdges(vertex, vertex.getId.get());
+removeVertexRequest(vertex.getId());
+aggregate(change, new BooleanWritable(true));
+}
+}
+private void removeEdge(Vertex<LongWritable,NullWritable, NullWritable, LongWritable> vertex,Iterable<LongWritable> messages){
+for (LongWritable x : messages)
+{
+for (Edge<LongWritable, NullWritable> edge:vertex.getEdges()) {
+if(x.get()==edge.getTargetVertexId().get())
+vertex.removeEdges(edge.getTargetVertexId());
+}
+}
+}
+}
+public static class KCoreVertexResolver implements VertexResolver<LongWritable, NullWritable, NullWritable> {
+public Vertex resolve(LongWritable vertexId, Vertex vertex,VertexChanges vertexChanges, boolean hasMessages) {
+return null;
+}
+}
+public static class KCoreMaster extends DefaultMasterCompute{
+public static final String CHANGE= "change" ;
+public static final String PHASE = phase;
+public enum Phases {
+REMOVEVERTEX , REMOVEEDGE 
+};
+
+public void initialize() throws InstantiationException,	IllegalAccessException { 
+registerPersistentAggregator(PHASE, IntOverwriteAggregator.class);
+registerAggregator(CHANGE,BooleanOverwriteAggregator.class);
+}
+public void compute() {
+if (getSuperstep() == 0) {
+setPhase(Phases.REMOVEVERTEX);
+} else {
+Phases currPhase = getPhase();
+switch (currPhase) {
+case REMOVEVERTEX:
+setPhase(Phase.REMOVEEDGE);
+break;
+case REMOVEEDGE:
+setPhase(Phase.REMOVEVERTEX);
+break;
+}
+}
+}
+}
+}
